@@ -2,652 +2,433 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Perspective Audio</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Rye&display=swap" rel="stylesheet">
+
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0c0c0e;
-      --surface: #141418;
-      --border: #1e1e24;
-      --text-primary: #e8e8e0;
-      --text-secondary: #6b6b72;
-      --text-muted: #3d3d45;
-      --accent: #c8a97e;
+      --bg: #000;
+      --surface: #0a0a0a;
+      --surface2: #111;
+      --border: rgba(255,255,255,0.07);
+      --text: #f0f0f0;
+      --muted: #666;
+      --accent: #e8e8e8;
+      --accent-dim: rgba(255,255,255,0.05);
     }
 
-    body {
+    html, body {
       background: var(--bg);
-      color: var(--text-primary);
-      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── NAV ── */
-    nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 20px 40px;
-      border-bottom: 1px solid var(--border);
+    /* ── HEADER ── */
+    .lib-header {
+      position: sticky; top: 0; z-index: 10;
+      background: rgba(0,0,0,0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border); padding: 0 32px; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
     }
+    .lib-brand { display: flex; align-items: center; gap: 10px; font-family: 'Rye', serif; font-size: 15px; color: var(--text); letter-spacing: 0.02em; text-decoration: none; }
+    .lib-brand-dot { width: 6px; height: 6px; border-radius: 50%; background: #fff; flex-shrink: 0; }
+    .lib-right { display: flex; align-items: center; gap: 16px; }
 
-    .nav-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 15px;
-      font-weight: 500;
-      color: var(--text-primary);
-      text-decoration: none;
-      letter-spacing: 0.01em;
+    .btn-nav {
+      background: none; border: 1px solid var(--border); border-radius: 8px; padding: 5px 12px;
+      font-family: 'Inter', sans-serif; font-size: 11px; color: var(--muted); cursor: pointer;
+      transition: color 0.15s, border-color 0.15s; letter-spacing: 0.02em;
+      text-decoration: none; display: inline-block; line-height: 1.8;
     }
+    .btn-nav:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
 
-    .nav-brand::before {
-      content: '';
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--accent);
-    }
+    /* ── MAIN ── */
+    .lib-main { max-width: 1100px; margin: 0 auto; padding: 48px 32px; }
+    .lib-heading { margin-bottom: 40px; }
+    .lib-heading-eyebrow { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+    .lib-heading h1 { font-size: 32px; color: var(--text); letter-spacing: 0.02em; }
 
-    .nav-right {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
+    /* ── BOOK GRID ── */
+    #book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 24px; }
 
-    .nav-link {
-      font-size: 13px;
-      color: var(--text-secondary);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
+    .book-card { cursor: pointer; display: flex; flex-direction: column; gap: 10px; transition: transform 0.2s; }
+    .book-card:hover { transform: translateY(-4px); }
+    .book-card.coming-soon { opacity: 0.4; cursor: default; pointer-events: none; }
 
-    .nav-link:hover { color: var(--text-primary); }
-
-    /* ── HERO ── */
-    .hero {
-      padding: 64px 40px 48px;
+    .book-cover {
+      aspect-ratio: 2/3; border-radius: 6px 12px 12px 6px; position: relative; overflow: hidden;
+      box-shadow: -4px 0 0 0 rgba(0,0,0,0.4), 4px 4px 20px rgba(0,0,0,0.6), inset -3px 0 6px rgba(0,0,0,0.3);
+      display: flex; flex-direction: column; justify-content: space-between; padding: 18px 14px;
     }
-
-    .hero-eyebrow {
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--text-secondary);
-      margin-bottom: 12px;
+    .book-cover::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
+      background: rgba(0,0,0,0.35); border-radius: 6px 0 0 6px; z-index: 1;
     }
-
-    .hero-title {
-      font-family: 'DM Serif Display', serif;
-      font-size: clamp(36px, 5vw, 52px);
-      font-weight: 400;
-      color: var(--text-primary);
-      line-height: 1.1;
-    }
-
-    /* ── GRID ── */
-    .grid {
-      padding: 0 40px 80px;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 28px;
-    }
-
-    /* ── CARD ── */
-    .card {
-      cursor: pointer;
-      text-decoration: none;
-      color: inherit;
-      display: block;
-    }
-
-    .card-cover {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 3/4;
-      border-radius: 8px;
-      overflow: hidden;
-      margin-bottom: 14px;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .card:hover .card-cover {
-      transform: translateY(-4px);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-    }
-
-    .card-cover-bg {
-      position: absolute;
-      inset: 0;
-    }
-
-    .card-cover-label {
-      position: absolute;
-      top: 14px;
-      left: 14px;
-      font-size: 10px;
-      font-weight: 500;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.55);
-    }
-
-    .card-cover-title {
-      position: absolute;
-      bottom: 14px;
-      left: 14px;
-      right: 14px;
-      font-family: 'DM Serif Display', serif;
-      font-size: 17px;
-      line-height: 1.25;
-      color: #fff;
-    }
-
-    /* play icon overlay */
-    .card-play {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      transition: opacity 0.25s ease;
-      background: rgba(0,0,0,0.3);
-    }
-
-    .card:hover .card-play { opacity: 1; }
-
-    .play-circle {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.15);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .play-circle svg {
-      width: 18px;
-      height: 18px;
-      fill: #fff;
-      margin-left: 3px;
-    }
-
-    /* card meta */
-    .card-title {
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text-primary);
-      margin-bottom: 4px;
-      line-height: 1.35;
-    }
-
-    .card-desc {
-      font-size: 12px;
-      color: var(--text-secondary);
-      line-height: 1.5;
-      margin-bottom: 6px;
-    }
-
-    .card-meta {
-      font-size: 11px;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .card-meta svg {
-      width: 11px;
-      height: 11px;
-      fill: var(--text-muted);
-    }
-
-    /* ── GRADIENTS per book ── */
-    .grad-survival {
-      background: linear-gradient(160deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-    }
-    .grad-fear {
-      background: linear-gradient(160deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    }
-    .grad-anger {
-      background: linear-gradient(160deg, #2d1b00 0%, #5c3200 50%, #8b4a00 100%);
-    }
-    .grad-procrastination {
-      background: linear-gradient(160deg, #0d2b1d 0%, #1a4a33 50%, #0d4f2e 100%);
-    }
-
-    /* ── COMING SOON card state ── */
-    .card.coming-soon .card-cover {
-      opacity: 0.45;
-    }
-
-    .card.coming-soon .card-title,
-    .card.coming-soon .card-desc {
-      opacity: 0.5;
-    }
-
-    .card-soon-badge {
-      display: inline-block;
-      font-size: 10px;
-      font-weight: 500;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 2px 7px;
-    }
-
-    /* ── PLAYER OVERLAY ── */
-    .player-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.85);
-      backdrop-filter: blur(16px);
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
+    .book-cover::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(160deg, rgba(255,255,255,0.08) 0%, transparent 60%);
       pointer-events: none;
-      transition: opacity 0.3s ease;
     }
 
-    .player-overlay.active {
-      opacity: 1;
-      pointer-events: all;
+    .book-cover-play {
+      position: absolute; inset: 0; z-index: 3;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.2s;
+      background: rgba(0,0,0,0.25);
+    }
+    .book-card:hover .book-cover-play { opacity: 1; }
+    .play-ring {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.25);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .play-ring svg { width: 16px; height: 16px; fill: #fff; margin-left: 2px; }
+
+    .book-category { position: relative; z-index: 2; font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+    .book-title-cover { position: relative; z-index: 2; font-size: 13px; line-height: 1.4; color: rgba(255,255,255,0.92); }
+
+    .book-meta { display: flex; flex-direction: column; gap: 3px; }
+    .book-title-below { font-size: 11px; color: var(--text); line-height: 1.4; }
+    .book-subtitle-below { font-size: 10px; color: var(--muted); line-height: 1.4; }
+    .book-readtime { font-size: 10px; color: #444; margin-top: 2px; }
+
+    /* ── MODAL ── */
+    #modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 100;
+      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); padding: 24px; overflow-y: auto;
+    }
+    #modal-overlay.open { display: flex; align-items: flex-start; justify-content: center; }
+
+    .modal {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+      width: 100%; max-width: 480px; margin: auto; padding: 0; overflow: hidden;
+      animation: modal-in 0.2s ease;
+    }
+    @keyframes modal-in {
+      from { opacity: 0; transform: translateY(12px) scale(0.98); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
     }
 
-    .player-box {
-      width: 100%;
-      max-width: 440px;
-      padding: 40px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      margin: 20px;
-      transform: translateY(20px);
-      transition: transform 0.3s ease;
+    .modal-cover-bar { height: 6px; width: 100%; }
+
+    .modal-header {
+      padding: 28px 32px 0; display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 16px;
     }
+    .modal-eyebrow { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .modal-title { font-size: 22px; line-height: 1.35; color: var(--text); }
 
-    .player-overlay.active .player-box {
-      transform: translateY(0);
+    .modal-close {
+      flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: var(--surface2);
+      border: 1px solid var(--border); color: var(--muted); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; font-size: 18px; line-height: 1;
+      transition: color 0.15s, background 0.15s;
     }
+    .modal-close:hover { color: var(--text); background: #2a2a2a; }
 
-    .player-close {
-      position: absolute;
-      top: 24px;
-      right: 28px;
-      background: none;
-      border: none;
-      color: var(--text-secondary);
-      font-size: 22px;
-      cursor: pointer;
-      line-height: 1;
-      transition: color 0.2s;
-    }
+    .modal-divider { margin: 24px 32px 0; height: 1px; background: var(--border); }
 
-    .player-close:hover { color: var(--text-primary); }
+    /* ── PLAYER BODY ── */
+    .player-body { padding: 24px 32px 32px; }
 
-    .player-category {
-      font-size: 10px;
-      font-weight: 500;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--text-secondary);
-      margin-bottom: 8px;
-    }
-
-    .player-title {
-      font-family: 'DM Serif Display', serif;
-      font-size: 26px;
-      line-height: 1.2;
-      color: var(--text-primary);
-      margin-bottom: 32px;
-    }
-
-    /* progress */
     .player-progress {
-      width: 100%;
-      height: 3px;
-      background: var(--border);
-      border-radius: 99px;
-      cursor: pointer;
-      margin-bottom: 10px;
-      position: relative;
-      overflow: hidden;
+      width: 100%; height: 3px; background: rgba(255,255,255,0.08);
+      border-radius: 99px; cursor: pointer; margin-bottom: 8px; overflow: hidden;
     }
-
     .player-bar {
-      height: 100%;
-      background: var(--accent);
-      border-radius: 99px;
-      width: 0%;
-      transition: width 0.25s linear;
-      pointer-events: none;
+      height: 100%; background: var(--accent); border-radius: 99px;
+      width: 0%; transition: width 0.25s linear; pointer-events: none;
     }
-
     .player-times {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-bottom: 28px;
-      font-variant-numeric: tabular-nums;
+      display: flex; justify-content: space-between;
+      font-size: 11px; color: var(--muted); margin-bottom: 28px;
+      font-variant-numeric: tabular-nums; letter-spacing: 0.04em;
     }
 
-    /* controls */
-    .player-controls {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 32px;
-    }
+    .player-controls { display: flex; align-items: center; justify-content: center; gap: 28px; margin-bottom: 24px; }
 
     .ctrl-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: var(--text-secondary);
-      transition: color 0.2s;
-      display: flex;
-      align-items: center;
+      background: none; border: none; cursor: pointer; color: var(--muted);
+      transition: color 0.15s; display: flex; flex-direction: column; align-items: center; gap: 4px;
     }
-
-    .ctrl-btn:hover { color: var(--text-primary); }
-
-    .ctrl-btn svg { width: 22px; height: 22px; fill: currentColor; }
+    .ctrl-btn:hover { color: var(--text); }
+    .ctrl-btn svg { width: 20px; height: 20px; fill: currentColor; }
+    .ctrl-label { font-size: 9px; letter-spacing: 0.08em; color: var(--muted); }
 
     .ctrl-play {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: var(--accent);
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.15s ease, opacity 0.15s;
+      width: 52px; height: 52px; border-radius: 50%;
+      background: var(--accent); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.15s, opacity 0.15s;
     }
-
     .ctrl-play:hover { transform: scale(1.06); opacity: 0.9; }
+    .ctrl-play svg { width: 20px; height: 20px; fill: #000; margin-left: 2px; }
 
-    .ctrl-play svg { width: 22px; height: 22px; fill: #0c0c0e; margin-left: 3px; }
-
-    .ctrl-play.paused svg { margin-left: 3px; }
-
-    /* speed */
-    .player-speed {
-      margin-top: 24px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      justify-content: flex-end;
-    }
-
-    .speed-label {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
+    .player-speed { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
+    .speed-label { font-size: 10px; color: var(--muted); letter-spacing: 0.06em; margin-right: 2px; }
     .speed-btn {
-      background: var(--border);
-      border: none;
-      color: var(--text-secondary);
-      font-size: 11px;
-      font-weight: 500;
-      padding: 4px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s;
-      font-family: inherit;
+      background: var(--surface2); border: 1px solid var(--border); color: var(--muted);
+      font-size: 10px; font-weight: 500; padding: 3px 9px; border-radius: 6px;
+      cursor: pointer; font-family: 'Inter', sans-serif;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
     }
+    .speed-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
+    .speed-btn.active { background: rgba(255,255,255,0.1); color: var(--text); border-color: rgba(255,255,255,0.2); }
 
-    .speed-btn.active, .speed-btn:hover {
-      background: var(--accent);
-      color: #0c0c0e;
+    @media (max-width: 600px) {
+      .lib-main { padding: 36px 20px; }
+      .lib-header { padding: 0 20px; }
+      #book-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 18px; }
+      .modal-header { padding: 22px 20px 0; }
+      .modal-divider { margin: 18px 20px 0; }
+      .player-body { padding: 20px 20px 28px; }
+      .modal-title { font-size: 18px; }
     }
-
   </style>
 </head>
 <body>
 
-  <!-- NAV -->
-  <nav>
-    <a class="nav-brand" href="#">Perspective Audio</a>
-    <div class="nav-right">
-      <a class="nav-link" href="https://samarthkulkarni16.github.io/perspective-library/">← Text Library</a>
-      <a class="nav-link" href="#">Sign in</a>
-    </div>
-  </nav>
-
-  <!-- HERO -->
-  <div class="hero">
-    <p class="hero-eyebrow">Your Collection</p>
-    <h1 class="hero-title">The Library</h1>
+<!-- HEADER -->
+<header class="lib-header">
+  <a class="lib-brand" href="#">
+    <div class="lib-brand-dot"></div>
+    Perspective Audio
+  </a>
+  <div class="lib-right">
+    <a class="btn-nav" href="#">Sign in</a>
   </div>
+</header>
 
-  <!-- GRID -->
-  <div class="grid">
-
-    <!-- SURVIVAL -->
-    <a class="card" href="#" onclick="openPlayer('Survival','PSYCHOLOGY','12 min',''); return false;">
-      <div class="card-cover">
-        <div class="card-cover-bg grad-survival"></div>
-        <span class="card-cover-label">Psychology</span>
-        <div class="card-cover-title">Survival</div>
-        <div class="card-play">
-          <div class="play-circle">
-            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-          </div>
-        </div>
-      </div>
-      <div class="card-title">Survival</div>
-      <div class="card-desc">Understanding the basic of everything we do.</div>
-      <div class="card-meta">
-        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
-        12 min listen
-      </div>
-    </a>
-
-    <!-- FEAR -->
-    <a class="card" href="#" onclick="openPlayer('How To Use Fear To Your Advantage','EMOTIONS','7 min',''); return false;">
-      <div class="card-cover">
-        <div class="card-cover-bg grad-fear"></div>
-        <span class="card-cover-label">Emotions</span>
-        <div class="card-cover-title">How To Use Fear To Your Advantage</div>
-        <div class="card-play">
-          <div class="play-circle">
-            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-          </div>
-        </div>
-      </div>
-      <div class="card-title">How To Use Fear To Your Advantage</div>
-      <div class="card-desc">Fear is not your enemy. It's information.</div>
-      <div class="card-meta">
-        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
-        7 min listen
-      </div>
-    </a>
-
-    <!-- ANGER -->
-    <a class="card" href="#" onclick="openPlayer('How To Use Anger To Your Advantage','EMOTIONS','5 min',''); return false;">
-      <div class="card-cover">
-        <div class="card-cover-bg grad-anger"></div>
-        <span class="card-cover-label">Emotions</span>
-        <div class="card-cover-title">How To Use Anger To Your Advantage</div>
-        <div class="card-play">
-          <div class="play-circle">
-            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-          </div>
-        </div>
-      </div>
-      <div class="card-title">How To Use Anger To Your Advantage</div>
-      <div class="card-desc">Anger is not a problem if you know what it is.</div>
-      <div class="card-meta">
-        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
-        5 min listen
-      </div>
-    </a>
-
-    <!-- PROCRASTINATION — coming soon -->
-    <div class="card coming-soon">
-      <div class="card-cover">
-        <div class="card-cover-bg grad-procrastination"></div>
-        <span class="card-cover-label">Productivity</span>
-        <div class="card-cover-title">Use Procrastination To Your Advantage</div>
-      </div>
-      <div class="card-title">Use Procrastination To Your Advantage</div>
-      <div class="card-desc">Stop fighting it. Start redirecting it.</div>
-      <div class="card-meta">
-        <span class="card-soon-badge">Coming soon</span>
-      </div>
-    </div>
-
+<!-- MAIN -->
+<main class="lib-main">
+  <div class="lib-heading">
+    <div class="lib-heading-eyebrow">Your Collection</div>
+    <h1>The Library</h1>
   </div>
+  <div id="book-grid"></div>
+</main>
 
-  <!-- PLAYER OVERLAY -->
-  <div class="player-overlay" id="playerOverlay">
-    <button class="player-close" onclick="closePlayer()">✕</button>
-    <div class="player-box">
-      <div class="player-category" id="playerCategory"></div>
-      <div class="player-title" id="playerTitle"></div>
-
-      <div class="player-progress" id="progressBar" onclick="seek(event)">
+<!-- PLAYER MODAL -->
+<div id="modal-overlay">
+  <div class="modal">
+    <div class="modal-cover-bar" id="modal-cover-bar"></div>
+    <div class="modal-header">
+      <div>
+        <div class="modal-eyebrow" id="modal-eyebrow"></div>
+        <div class="modal-title" id="modal-title"></div>
+      </div>
+      <button class="modal-close" id="modal-close">&#215;</button>
+    </div>
+    <div class="modal-divider"></div>
+    <div class="player-body">
+      <div class="player-progress" id="progressBar">
         <div class="player-bar" id="progressFill"></div>
       </div>
       <div class="player-times">
         <span id="timeElapsed">0:00</span>
         <span id="timeDuration">0:00</span>
       </div>
-
       <div class="player-controls">
-        <button class="ctrl-btn" onclick="skip(-15)" title="Back 15s">
-          <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8zm-1 11h-1.5v-4H8v-1h3v5zm3.52-1.06c-.18.35-.52.58-.92.58-.39 0-.72-.21-.91-.53l-.01.01v-3.01h-.01c.18-.31.51-.52.91-.52.55 0 1 .54 1 1.21v1.05c0 .48-.03.87-.06 1.21z"/></svg>
+        <button class="ctrl-btn" id="btn-back">
+          <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+          <span class="ctrl-label">15s</span>
         </button>
-
-        <button class="ctrl-play" id="playBtn" onclick="togglePlay()">
+        <button class="ctrl-play" id="playBtn">
           <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
         </button>
-
-        <button class="ctrl-btn" onclick="skip(15)" title="Forward 15s">
-          <svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8zm-1 11h-1.5v-4H8v-1h3v5zm3.52-1.06c-.18.35-.52.58-.92.58-.39 0-.72-.21-.91-.53l-.01.01v-3.01h-.01c.18-.31.51-.52.91-.52.55 0 1 .54 1 1.21v1.05c0 .48-.03.87-.06 1.21z"/></svg>
+        <button class="ctrl-btn" id="btn-fwd">
+          <svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z"/></svg>
+          <span class="ctrl-label">15s</span>
         </button>
       </div>
-
       <div class="player-speed">
         <span class="speed-label">Speed</span>
-        <button class="speed-btn" onclick="setSpeed(0.75)">0.75×</button>
-        <button class="speed-btn active" onclick="setSpeed(1)">1×</button>
-        <button class="speed-btn" onclick="setSpeed(1.25)">1.25×</button>
-        <button class="speed-btn" onclick="setSpeed(1.5)">1.5×</button>
+        <button class="speed-btn" data-rate="0.75">0.75×</button>
+        <button class="speed-btn active" data-rate="1">1×</button>
+        <button class="speed-btn" data-rate="1.25">1.25×</button>
+        <button class="speed-btn" data-rate="1.5">1.5×</button>
       </div>
     </div>
   </div>
+</div>
 
-  <audio id="audioEl"></audio>
+<audio id="audioEl"></audio>
 
-  <script>
-    const audio = document.getElementById('audioEl');
-    let progressInterval;
+<script>
+// ── SAME ORDER & EXACT SAME GRADIENTS AS TEXT SITE ────────────────────────────
+const AUDIOBOOKS = [
+  {
+    title: "How To Use Anger To Your Advantage",
+    subtitle: "Anger is not a problem if you know what it is",
+    category: "Emotions",
+    color: "linear-gradient(135deg, #1a1a2e, #16213e)",
+    duration: "3 min",
+    src: ""
+  },
+  {
+    title: "Use Procrastination To Your Advantage",
+    subtitle: "Stop fighting it. Start redirecting it.",
+    category: "Productivity",
+    color: "linear-gradient(135deg, #0f2027, #203a43, #2c5364)",
+    duration: "4 min",
+    src: ""
+  },
+  {
+    title: "Use Conflicts To Your Advantage",
+    subtitle: "You don't need to escape problems. You need to upgrade them.",
+    category: "Mindset",
+    color: "linear-gradient(135deg, #1a0a00, #3d1f00, #1a0a00)",
+    duration: "6 min",
+    src: ""
+  },
+  {
+    title: "Survival",
+    subtitle: "Understanding the basic of everything we do.",
+    category: "Psychology",
+    color: "linear-gradient(135deg, #0a1628, #1a3a2a, #0a1628)",
+    duration: "12 min",
+    src: ""
+  },
+];
 
-    function openPlayer(title, category, duration, src) {
-      document.getElementById('playerTitle').textContent = title;
-      document.getElementById('playerCategory').textContent = category;
-      document.getElementById('timeDuration').textContent = duration;
-      document.getElementById('playerOverlay').classList.add('active');
-      if (src) {
-        audio.src = src;
-      }
-      resetProgress();
-    }
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function renderBooks() {
+  const grid = document.getElementById('book-grid');
+  grid.innerHTML = '';
+  AUDIOBOOKS.forEach(book => {
+    const card = document.createElement('div');
+    card.className = 'book-card' + (book.comingSoon ? ' coming-soon' : '');
+    card.innerHTML = `
+      <div class="book-cover" style="background: ${book.color}">
+        <div class="book-category">${book.category}</div>
+        <div class="book-title-cover">${book.title}</div>
+        <div class="book-cover-play">
+          <div class="play-ring">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="book-meta">
+        <div class="book-title-below">${book.title}</div>
+        ${book.subtitle ? `<div class="book-subtitle-below">${book.subtitle}</div>` : ''}
+        <div class="book-readtime">${book.comingSoon ? 'Coming soon' : book.duration + ' listen'}</div>
+      </div>
+    `;
+    if (!book.comingSoon) card.addEventListener('click', () => openPlayer(book));
+    grid.appendChild(card);
+  });
+}
 
-    function closePlayer() {
-      document.getElementById('playerOverlay').classList.remove('active');
-      audio.pause();
-      clearInterval(progressInterval);
-    }
+// ── PLAYER ────────────────────────────────────────────────────────────────────
+const audio        = document.getElementById('audioEl');
+const overlay      = document.getElementById('modal-overlay');
+const playIcon     = document.getElementById('playIcon');
+const progressFill = document.getElementById('progressFill');
+const timeElapsed  = document.getElementById('timeElapsed');
+const timeDuration = document.getElementById('timeDuration');
+let ticker;
 
-    function togglePlay() {
-      if (audio.paused) {
-        audio.play();
-        document.getElementById('playIcon').innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
-        progressInterval = setInterval(updateProgress, 500);
-      } else {
-        audio.pause();
-        document.getElementById('playIcon').innerHTML = '<path d="M8 5v14l11-7z"/>';
-        clearInterval(progressInterval);
-      }
-    }
+const PLAY_SVG  = '<path d="M8 5v14l11-7z"/>';
+const PAUSE_SVG = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
 
-    function skip(seconds) {
-      audio.currentTime = Math.max(0, audio.currentTime + seconds);
-      updateProgress();
-    }
+function openPlayer(book) {
+  document.getElementById('modal-eyebrow').textContent          = book.category;
+  document.getElementById('modal-title').textContent            = book.title;
+  document.getElementById('modal-cover-bar').style.background   = book.color;
+  timeDuration.textContent = book.duration || '0:00';
+  resetPlayer();
+  if (book.src) audio.src = book.src;
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
 
-    function seek(e) {
-      const bar = document.getElementById('progressBar');
-      const rect = bar.getBoundingClientRect();
-      const pct = (e.clientX - rect.left) / rect.width;
-      if (audio.duration) {
-        audio.currentTime = pct * audio.duration;
-        updateProgress();
-      }
-    }
+function closePlayer() {
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+  audio.pause();
+  clearInterval(ticker);
+}
 
-    function updateProgress() {
-      if (!audio.duration) return;
-      const pct = (audio.currentTime / audio.duration) * 100;
-      document.getElementById('progressFill').style.width = pct + '%';
-      document.getElementById('timeElapsed').textContent = fmt(audio.currentTime);
-      document.getElementById('timeDuration').textContent = fmt(audio.duration);
-    }
+function togglePlay() {
+  if (audio.paused) {
+    audio.play();
+    playIcon.innerHTML = PAUSE_SVG;
+    ticker = setInterval(updateProgress, 500);
+  } else {
+    audio.pause();
+    playIcon.innerHTML = PLAY_SVG;
+    clearInterval(ticker);
+  }
+}
 
-    function resetProgress() {
-      document.getElementById('progressFill').style.width = '0%';
-      document.getElementById('timeElapsed').textContent = '0:00';
-      document.getElementById('playIcon').innerHTML = '<path d="M8 5v14l11-7z"/>';
-    }
+function skip(s) {
+  audio.currentTime = Math.max(0, audio.currentTime + s);
+  updateProgress();
+}
 
-    function fmt(s) {
-      const m = Math.floor(s / 60);
-      const sec = Math.floor(s % 60).toString().padStart(2, '0');
-      return m + ':' + sec;
-    }
+function updateProgress() {
+  if (!audio.duration) return;
+  const pct = (audio.currentTime / audio.duration) * 100;
+  progressFill.style.width = pct + '%';
+  timeElapsed.textContent  = fmt(audio.currentTime);
+  timeDuration.textContent = fmt(audio.duration);
+}
 
-    function setSpeed(rate) {
-      audio.playbackRate = rate;
-      document.querySelectorAll('.speed-btn').forEach(b => {
-        b.classList.toggle('active', parseFloat(b.textContent) === rate);
-      });
-    }
+function resetPlayer() {
+  progressFill.style.width = '0%';
+  timeElapsed.textContent  = '0:00';
+  playIcon.innerHTML       = PLAY_SVG;
+  clearInterval(ticker);
+}
 
-    // close on backdrop click
-    document.getElementById('playerOverlay').addEventListener('click', function(e) {
-      if (e.target === this) closePlayer();
-    });
+function fmt(s) {
+  const m   = Math.floor(s / 60);
+  const sec = Math.floor(s % 60).toString().padStart(2, '0');
+  return m + ':' + sec;
+}
 
-    // keyboard
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') closePlayer();
-      if (e.key === ' ' && document.getElementById('playerOverlay').classList.contains('active')) {
-        e.preventDefault();
-        togglePlay();
-      }
-    });
-  </script>
+document.getElementById('progressBar').addEventListener('click', e => {
+  if (!audio.duration) return;
+  const r = document.getElementById('progressBar').getBoundingClientRect();
+  audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
+  updateProgress();
+});
+
+audio.addEventListener('ended', () => {
+  playIcon.innerHTML       = PLAY_SVG;
+  progressFill.style.width = '100%';
+  clearInterval(ticker);
+});
+
+document.getElementById('playBtn').addEventListener('click', togglePlay);
+document.getElementById('btn-back').addEventListener('click', () => skip(-15));
+document.getElementById('btn-fwd').addEventListener('click', () => skip(15));
+
+document.querySelectorAll('.speed-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    audio.playbackRate = parseFloat(btn.dataset.rate);
+    document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+document.getElementById('modal-close').addEventListener('click', closePlayer);
+overlay.addEventListener('click', e => { if (e.target === overlay) closePlayer(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closePlayer();
+  if (e.key === ' ' && overlay.classList.contains('open')) { e.preventDefault(); togglePlay(); }
+});
+
+renderBooks();
+</script>
 </body>
 </html>
