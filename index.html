@@ -9,6 +9,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Rye&display=swap" rel="stylesheet">
 
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -41,6 +45,11 @@
     .lib-brand { display: flex; align-items: center; gap: 10px; font-family: 'Rye', serif; font-size: 15px; color: var(--text); letter-spacing: 0.02em; text-decoration: none; }
     .lib-brand-dot { width: 6px; height: 6px; border-radius: 50%; background: #fff; flex-shrink: 0; }
     .lib-right { display: flex; align-items: center; gap: 16px; }
+
+    .user-name {
+      font-size: 11px; color: var(--muted); letter-spacing: 0.02em;
+      max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
 
     .btn-nav {
       background: none; border: 1px solid var(--border); border-radius: 8px; padding: 5px 12px;
@@ -100,6 +109,60 @@
     .book-subtitle-below { font-size: 10px; color: var(--muted); line-height: 1.4; }
     .book-readtime { font-size: 10px; color: #444; margin-top: 2px; }
 
+    /* ── AUTH WALL ── */
+    #auth-wall {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200;
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      align-items: center; justify-content: center; padding: 24px;
+    }
+    #auth-wall.open { display: flex; }
+
+    .auth-box {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+      width: 100%; max-width: 380px; padding: 40px 36px;
+      animation: modal-in 0.2s ease;
+    }
+    .auth-eyebrow { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .auth-title { font-size: 22px; color: var(--text); margin-bottom: 8px; }
+    .auth-sub { font-size: 12px; color: var(--muted); margin-bottom: 28px; line-height: 1.6; }
+
+    .auth-tabs { display: flex; gap: 0; margin-bottom: 24px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .auth-tab {
+      flex: 1; padding: 8px; font-size: 11px; font-family: 'Inter', sans-serif;
+      background: none; border: none; color: var(--muted); cursor: pointer;
+      transition: background 0.15s, color 0.15s; letter-spacing: 0.04em;
+    }
+    .auth-tab.active { background: var(--surface2); color: var(--text); }
+
+    .auth-field { margin-bottom: 14px; }
+    .auth-field label { display: block; font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+    .auth-field input {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 14px; font-size: 13px; font-family: 'Inter', sans-serif;
+      color: var(--text); outline: none; transition: border-color 0.15s;
+    }
+    .auth-field input:focus { border-color: rgba(255,255,255,0.2); }
+
+    .auth-error { font-size: 11px; color: #e05555; margin-bottom: 14px; min-height: 16px; }
+
+    .btn-auth {
+      width: 100%; padding: 11px; background: #fff; color: #000;
+      border: none; border-radius: 8px; font-size: 13px; font-family: 'Inter', sans-serif;
+      font-weight: 500; cursor: pointer; transition: opacity 0.15s; letter-spacing: 0.02em;
+    }
+    .btn-auth:hover { opacity: 0.88; }
+    .btn-auth:disabled { opacity: 0.4; cursor: default; }
+
+    .auth-close {
+      position: absolute; top: 16px; right: 16px;
+      width: 32px; height: 32px; border-radius: 50%; background: var(--surface2);
+      border: 1px solid var(--border); color: var(--muted); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+      transition: color 0.15s;
+    }
+    .auth-close:hover { color: var(--text); }
+    .auth-box { position: relative; }
+
     /* ── MODAL ── */
     #modal-overlay {
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 100;
@@ -138,7 +201,6 @@
 
     /* ── PLAYER ── */
     .player-body { padding: 24px 32px 32px; }
-
     .player-controls { display: flex; align-items: center; gap: 16px; }
 
     .ctrl-play {
@@ -152,7 +214,6 @@
 
     .player-right { flex: 1; display: flex; flex-direction: column; gap: 8px; }
 
-    /* YouTube-style progress bar */
     .player-progress {
       width: 100%; height: 4px; background: rgba(255,255,255,0.12);
       border-radius: 99px; cursor: pointer; position: relative;
@@ -185,6 +246,7 @@
       .modal-divider { margin: 18px 20px 0; }
       .player-body { padding: 20px 20px 28px; }
       .modal-title { font-size: 18px; }
+      .auth-box { padding: 32px 24px; }
     }
   </style>
 </head>
@@ -197,7 +259,8 @@
     Perspective Audio
   </a>
   <div class="lib-right">
-    <a class="btn-nav" href="#">Sign in</a>
+    <span class="user-name" id="header-username"></span>
+    <button class="btn-nav" id="auth-btn">Sign in</button>
   </div>
 </header>
 
@@ -209,6 +272,47 @@
   </div>
   <div id="book-grid"></div>
 </main>
+
+<!-- AUTH WALL -->
+<div id="auth-wall">
+  <div class="auth-box">
+    <button class="auth-close" id="auth-wall-close">&#215;</button>
+    <div class="auth-eyebrow">Perspective Audio</div>
+    <div class="auth-title">Sign in to listen</div>
+    <div class="auth-sub">Your account works across the entire Perspective collection.</div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-signin" onclick="switchTab('signin')">Sign in</button>
+      <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Create account</button>
+    </div>
+
+    <div id="form-signin">
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="si-email" placeholder="you@example.com" />
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="si-password" placeholder="••••••••" />
+      </div>
+      <div class="auth-error" id="si-error"></div>
+      <button class="btn-auth" id="si-btn" onclick="doSignIn()">Sign in</button>
+    </div>
+
+    <div id="form-signup" style="display:none">
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="su-email" placeholder="you@example.com" />
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="su-password" placeholder="min 6 characters" />
+      </div>
+      <div class="auth-error" id="su-error"></div>
+      <button class="btn-auth" id="su-btn" onclick="doSignUp()">Create account</button>
+    </div>
+  </div>
+</div>
 
 <!-- PLAYER MODAL -->
 <div id="modal-overlay">
@@ -246,6 +350,21 @@
 <audio id="audioEl"></audio>
 
 <script>
+// ── FIREBASE ──
+firebase.initializeApp({
+  apiKey: "AIzaSyDSi-_yS2SeW6QqvSxfkJ7RHJZ-ArMz0j0",
+  authDomain: "perspective-library.firebaseapp.com",
+  projectId: "perspective-library",
+  storageBucket: "perspective-library.firebasestorage.app",
+  messagingSenderId: "960053593256",
+  appId: "1:960053593256:web:030144d380de81dcf12e9d"
+});
+const auth = firebase.auth();
+
+// ── R2 BASE URL ──
+const R2 = "https://pub-e5b2f14df3a14e9893d39e0d56b54eff.r2.dev";
+
+// ── AUDIOBOOKS ──
 const AUDIOBOOKS = [
   {
     title: "How To Use Anger To Your Advantage",
@@ -253,7 +372,7 @@ const AUDIOBOOKS = [
     category: "Emotions",
     color: "linear-gradient(135deg, #1a1a2e, #16213e)",
     duration: "3 min",
-    src: ""
+    src: `${R2}/anger.mp3`
   },
   {
     title: "Use Procrastination To Your Advantage",
@@ -261,7 +380,7 @@ const AUDIOBOOKS = [
     category: "Productivity",
     color: "linear-gradient(135deg, #0f2027, #203a43, #2c5364)",
     duration: "4 min",
-    src: ""
+    src: `${R2}/procrastination.mp3`
   },
   {
     title: "Use Conflicts To Your Advantage",
@@ -269,7 +388,7 @@ const AUDIOBOOKS = [
     category: "Mindset",
     color: "linear-gradient(135deg, #1a0a00, #3d1f00, #1a0a00)",
     duration: "6 min",
-    src: ""
+    src: `${R2}/conflicts.mp3`
   },
   {
     title: "Survival",
@@ -277,10 +396,109 @@ const AUDIOBOOKS = [
     category: "Psychology",
     color: "linear-gradient(135deg, #0a1628, #1a3a2a, #0a1628)",
     duration: "12 min",
-    src: ""
+    src: `${R2}/survival.mp3`
   },
 ];
 
+// ── AUTH STATE ──
+let currentUser = null;
+
+auth.onAuthStateChanged(user => {
+  currentUser = user;
+  const btn      = document.getElementById('auth-btn');
+  const nameEl   = document.getElementById('header-username');
+  if (user) {
+    nameEl.textContent = user.email;
+    btn.textContent    = 'Sign out';
+    btn.onclick        = doSignOut;
+  } else {
+    nameEl.textContent = '';
+    btn.textContent    = 'Sign in';
+    btn.onclick        = openAuthWall;
+  }
+});
+
+// ── AUTH FUNCTIONS ──
+function openAuthWall() {
+  document.getElementById('auth-wall').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAuthWall() {
+  document.getElementById('auth-wall').classList.remove('open');
+  document.body.style.overflow = '';
+  clearErrors();
+}
+
+function switchTab(tab) {
+  document.getElementById('form-signin').style.display = tab === 'signin' ? '' : 'none';
+  document.getElementById('form-signup').style.display = tab === 'signup' ? '' : 'none';
+  document.getElementById('tab-signin').classList.toggle('active', tab === 'signin');
+  document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+  clearErrors();
+}
+
+function clearErrors() {
+  document.getElementById('si-error').textContent = '';
+  document.getElementById('su-error').textContent = '';
+}
+
+function friendlyError(code) {
+  const map = {
+    'auth/user-not-found':      'No account found with this email.',
+    'auth/wrong-password':      'Incorrect password.',
+    'auth/invalid-email':       'Please enter a valid email.',
+    'auth/email-already-in-use':'An account with this email already exists.',
+    'auth/weak-password':       'Password must be at least 6 characters.',
+    'auth/invalid-credential':  'Incorrect email or password.',
+    'auth/too-many-requests':   'Too many attempts. Try again later.',
+  };
+  return map[code] || 'Something went wrong. Please try again.';
+}
+
+async function doSignIn() {
+  const email = document.getElementById('si-email').value.trim();
+  const pass  = document.getElementById('si-password').value;
+  const btn   = document.getElementById('si-btn');
+  const err   = document.getElementById('si-error');
+  if (!email || !pass) { err.textContent = 'Please fill in all fields.'; return; }
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    await auth.signInWithEmailAndPassword(email, pass);
+    closeAuthWall();
+  } catch(e) {
+    err.textContent = friendlyError(e.code);
+  }
+  btn.disabled = false; btn.textContent = 'Sign in';
+}
+
+async function doSignUp() {
+  const email = document.getElementById('su-email').value.trim();
+  const pass  = document.getElementById('su-password').value;
+  const btn   = document.getElementById('su-btn');
+  const err   = document.getElementById('su-error');
+  if (!email || !pass) { err.textContent = 'Please fill in all fields.'; return; }
+  btn.disabled = true; btn.textContent = 'Creating account…';
+  try {
+    await auth.createUserWithEmailAndPassword(email, pass);
+    closeAuthWall();
+  } catch(e) {
+    err.textContent = friendlyError(e.code);
+  }
+  btn.disabled = false; btn.textContent = 'Create account';
+}
+
+async function doSignOut() {
+  await auth.signOut();
+}
+
+document.getElementById('auth-btn').onclick = openAuthWall;
+document.getElementById('auth-wall-close').addEventListener('click', closeAuthWall);
+document.getElementById('auth-wall').addEventListener('click', e => {
+  if (e.target === document.getElementById('auth-wall')) closeAuthWall();
+});
+
+// ── BOOK GRID ──
 function renderBooks() {
   const grid = document.getElementById('book-grid');
   grid.innerHTML = '';
@@ -303,11 +521,21 @@ function renderBooks() {
         <div class="book-readtime">${book.comingSoon ? 'Coming soon' : book.duration + ' listen'}</div>
       </div>
     `;
-    if (!book.comingSoon) card.addEventListener('click', () => openPlayer(book));
+    if (!book.comingSoon) card.addEventListener('click', () => handleCardClick(book));
     grid.appendChild(card);
   });
 }
 
+// ── CARD CLICK — gate with auth ──
+function handleCardClick(book) {
+  if (!currentUser) {
+    openAuthWall();
+    return;
+  }
+  openPlayer(book);
+}
+
+// ── PLAYER ──
 const audio        = document.getElementById('audioEl');
 const overlay      = document.getElementById('modal-overlay');
 const playIcon     = document.getElementById('playIcon');
@@ -370,7 +598,6 @@ function fmt(s) {
   return m + ':' + sec;
 }
 
-// Seekable progress bar
 document.getElementById('progressBar').addEventListener('click', e => {
   if (!audio.duration) return;
   const r = document.getElementById('progressBar').getBoundingClientRect();
@@ -378,7 +605,6 @@ document.getElementById('progressBar').addEventListener('click', e => {
   updateProgress();
 });
 
-// Drag to seek
 let dragging = false;
 document.getElementById('progressBar').addEventListener('mousedown', () => { dragging = true; });
 document.addEventListener('mousemove', e => {
