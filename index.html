@@ -77,7 +77,6 @@
       background: linear-gradient(160deg, rgba(255,255,255,0.08) 0%, transparent 60%);
       pointer-events: none;
     }
-
     .book-cover-play {
       position: absolute; inset: 0; z-index: 3;
       display: flex; align-items: center; justify-content: center;
@@ -137,52 +136,46 @@
 
     .modal-divider { margin: 24px 32px 0; height: 1px; background: var(--border); }
 
-    /* ── PLAYER BODY ── */
+    /* ── PLAYER ── */
     .player-body { padding: 24px 32px 32px; }
 
-    .player-progress {
-      width: 100%; height: 3px; background: rgba(255,255,255,0.08);
-      border-radius: 99px; cursor: pointer; margin-bottom: 8px; overflow: hidden;
-    }
-    .player-bar {
-      height: 100%; background: var(--accent); border-radius: 99px;
-      width: 0%; transition: width 0.25s linear; pointer-events: none;
-    }
-    .player-times {
-      display: flex; justify-content: space-between;
-      font-size: 11px; color: var(--muted); margin-bottom: 28px;
-      font-variant-numeric: tabular-nums; letter-spacing: 0.04em;
-    }
-
-    .player-controls { display: flex; align-items: center; justify-content: center; gap: 28px; margin-bottom: 24px; }
-
-    .ctrl-btn {
-      background: none; border: none; cursor: pointer; color: var(--muted);
-      transition: color 0.15s; display: flex; flex-direction: column; align-items: center; gap: 4px;
-    }
-    .ctrl-btn:hover { color: var(--text); }
-    .ctrl-btn svg { width: 20px; height: 20px; fill: currentColor; }
-    .ctrl-label { font-size: 9px; letter-spacing: 0.08em; color: var(--muted); }
+    .player-controls { display: flex; align-items: center; gap: 16px; }
 
     .ctrl-play {
-      width: 52px; height: 52px; border-radius: 50%;
-      background: var(--accent); border: none; cursor: pointer;
+      flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;
+      background: #fff; border: none; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       transition: transform 0.15s, opacity 0.15s;
     }
     .ctrl-play:hover { transform: scale(1.06); opacity: 0.9; }
-    .ctrl-play svg { width: 20px; height: 20px; fill: #000; margin-left: 2px; }
+    .ctrl-play svg { width: 18px; height: 18px; fill: #000; margin-left: 2px; }
 
-    .player-speed { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
-    .speed-label { font-size: 10px; color: var(--muted); letter-spacing: 0.06em; margin-right: 2px; }
-    .speed-btn {
-      background: var(--surface2); border: 1px solid var(--border); color: var(--muted);
-      font-size: 10px; font-weight: 500; padding: 3px 9px; border-radius: 6px;
-      cursor: pointer; font-family: 'Inter', sans-serif;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    .player-right { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+
+    /* YouTube-style progress bar */
+    .player-progress {
+      width: 100%; height: 4px; background: rgba(255,255,255,0.12);
+      border-radius: 99px; cursor: pointer; position: relative;
+      transition: height 0.15s;
     }
-    .speed-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
-    .speed-btn.active { background: rgba(255,255,255,0.1); color: var(--text); border-color: rgba(255,255,255,0.2); }
+    .player-progress:hover { height: 6px; }
+    .player-bar {
+      height: 100%; background: #fff; border-radius: 99px;
+      width: 0%; pointer-events: none; position: relative;
+    }
+    .player-thumb {
+      position: absolute; top: 50%; right: -6px;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: #fff; transform: translateY(-50%);
+      opacity: 0; transition: opacity 0.15s; pointer-events: none;
+    }
+    .player-progress:hover .player-thumb { opacity: 1; }
+
+    .player-times {
+      display: flex; justify-content: space-between;
+      font-size: 10px; color: var(--muted);
+      font-variant-numeric: tabular-nums; letter-spacing: 0.04em;
+    }
 
     @media (max-width: 600px) {
       .lib-main { padding: 36px 20px; }
@@ -230,32 +223,21 @@
     </div>
     <div class="modal-divider"></div>
     <div class="player-body">
-      <div class="player-progress" id="progressBar">
-        <div class="player-bar" id="progressFill"></div>
-      </div>
-      <div class="player-times">
-        <span id="timeElapsed">0:00</span>
-        <span id="timeDuration">0:00</span>
-      </div>
       <div class="player-controls">
-        <button class="ctrl-btn" id="btn-back">
-          <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
-          <span class="ctrl-label">15s</span>
-        </button>
         <button class="ctrl-play" id="playBtn">
           <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
         </button>
-        <button class="ctrl-btn" id="btn-fwd">
-          <svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z"/></svg>
-          <span class="ctrl-label">15s</span>
-        </button>
-      </div>
-      <div class="player-speed">
-        <span class="speed-label">Speed</span>
-        <button class="speed-btn" data-rate="0.75">0.75×</button>
-        <button class="speed-btn active" data-rate="1">1×</button>
-        <button class="speed-btn" data-rate="1.25">1.25×</button>
-        <button class="speed-btn" data-rate="1.5">1.5×</button>
+        <div class="player-right">
+          <div class="player-progress" id="progressBar">
+            <div class="player-bar" id="progressFill">
+              <div class="player-thumb"></div>
+            </div>
+          </div>
+          <div class="player-times">
+            <span id="timeElapsed">0:00</span>
+            <span id="timeDuration">0:00</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -264,7 +246,6 @@
 <audio id="audioEl"></audio>
 
 <script>
-// ── SAME ORDER & EXACT SAME GRADIENTS AS TEXT SITE ────────────────────────────
 const AUDIOBOOKS = [
   {
     title: "How To Use Anger To Your Advantage",
@@ -300,7 +281,6 @@ const AUDIOBOOKS = [
   },
 ];
 
-// ── RENDER ────────────────────────────────────────────────────────────────────
 function renderBooks() {
   const grid = document.getElementById('book-grid');
   grid.innerHTML = '';
@@ -328,7 +308,6 @@ function renderBooks() {
   });
 }
 
-// ── PLAYER ────────────────────────────────────────────────────────────────────
 const audio        = document.getElementById('audioEl');
 const overlay      = document.getElementById('modal-overlay');
 const playIcon     = document.getElementById('playIcon');
@@ -341,9 +320,9 @@ const PLAY_SVG  = '<path d="M8 5v14l11-7z"/>';
 const PAUSE_SVG = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
 
 function openPlayer(book) {
-  document.getElementById('modal-eyebrow').textContent          = book.category;
-  document.getElementById('modal-title').textContent            = book.title;
-  document.getElementById('modal-cover-bar').style.background   = book.color;
+  document.getElementById('modal-eyebrow').textContent        = book.category;
+  document.getElementById('modal-title').textContent          = book.title;
+  document.getElementById('modal-cover-bar').style.background = book.color;
   timeDuration.textContent = book.duration || '0:00';
   resetPlayer();
   if (book.src) audio.src = book.src;
@@ -362,17 +341,12 @@ function togglePlay() {
   if (audio.paused) {
     audio.play();
     playIcon.innerHTML = PAUSE_SVG;
-    ticker = setInterval(updateProgress, 500);
+    ticker = setInterval(updateProgress, 250);
   } else {
     audio.pause();
     playIcon.innerHTML = PLAY_SVG;
     clearInterval(ticker);
   }
-}
-
-function skip(s) {
-  audio.currentTime = Math.max(0, audio.currentTime + s);
-  updateProgress();
 }
 
 function updateProgress() {
@@ -396,12 +370,25 @@ function fmt(s) {
   return m + ':' + sec;
 }
 
+// Seekable progress bar
 document.getElementById('progressBar').addEventListener('click', e => {
   if (!audio.duration) return;
   const r = document.getElementById('progressBar').getBoundingClientRect();
   audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
   updateProgress();
 });
+
+// Drag to seek
+let dragging = false;
+document.getElementById('progressBar').addEventListener('mousedown', () => { dragging = true; });
+document.addEventListener('mousemove', e => {
+  if (!dragging || !audio.duration) return;
+  const r = document.getElementById('progressBar').getBoundingClientRect();
+  const pct = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+  audio.currentTime = pct * audio.duration;
+  updateProgress();
+});
+document.addEventListener('mouseup', () => { dragging = false; });
 
 audio.addEventListener('ended', () => {
   playIcon.innerHTML       = PLAY_SVG;
@@ -410,17 +397,6 @@ audio.addEventListener('ended', () => {
 });
 
 document.getElementById('playBtn').addEventListener('click', togglePlay);
-document.getElementById('btn-back').addEventListener('click', () => skip(-15));
-document.getElementById('btn-fwd').addEventListener('click', () => skip(15));
-
-document.querySelectorAll('.speed-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    audio.playbackRate = parseFloat(btn.dataset.rate);
-    document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  });
-});
-
 document.getElementById('modal-close').addEventListener('click', closePlayer);
 overlay.addEventListener('click', e => { if (e.target === overlay) closePlayer(); });
 document.addEventListener('keydown', e => {
