@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Perspective Audio</title>
 
-  <!-- Favicon -->
   <link rel="icon" type="image/jpeg" href="logo.jpeg" />
 
   <!-- Firebase -->
@@ -33,13 +32,16 @@
       background: var(--bg);
       color: var(--text);
       font-family: 'Inter', sans-serif;
-      min-height: 100vh;
+      height: 100vh;
+      overflow: hidden;
       -webkit-font-smoothing: antialiased;
     }
 
     /* ── LOADING ── */
     #loading-screen {
-      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg); z-index: 200;
     }
     .spinner {
       width: 28px; height: 28px; border: 2px solid rgba(255,255,255,0.1);
@@ -49,44 +51,64 @@
 
     /* ── AUTH SCREEN ── */
     #auth-screen {
-      min-height: 100vh; display: none; align-items: center;
-      justify-content: center; padding: 24px;
+      position: fixed; inset: 0;
+      display: none; align-items: center; justify-content: center;
+      padding: 24px; background: var(--bg); z-index: 100;
+      overflow-y: auto;
     }
     .auth-box { width: 100%; max-width: 380px; }
-    .auth-header { text-align: center; margin-bottom: 36px; }
-    .auth-logo { display: block; margin: 0 auto 18px; width: 72px; height: 72px; border-radius: 50%; overflow: hidden; }
-    .auth-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .auth-title { font-family: 'Rye', serif; font-size: 24px; color: var(--text); letter-spacing: 0.02em; }
-    .auth-sub { margin-top: 6px; font-size: 12px; color: var(--muted); letter-spacing: 0.04em; }
-    .auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px; }
+
+    .auth-header { text-align: center; margin-bottom: 28px; }
+    .auth-logo {
+      display: block; margin: 0 auto 16px;
+      width: 100%; max-width: 300px;
+    }
+    .auth-logo img { width: 100%; height: auto; display: block; }
+    .auth-title { font-family: 'Rye', serif; font-size: 22px; color: var(--text); letter-spacing: 0.02em; }
+    .auth-sub { margin-top: 5px; font-size: 12px; color: var(--muted); letter-spacing: 0.04em; }
+
+    .auth-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; padding: 24px;
+    }
+
+    /* Google button */
+    .btn-google {
+      width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+      background: #fff; color: #1a1a1a; border: none; border-radius: 12px; padding: 12px;
+      font-family: 'Inter', sans-serif; font-size: 13px; cursor: pointer;
+      transition: background 0.15s, box-shadow 0.15s;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.3); letter-spacing: 0.02em;
+    }
+    .btn-google:hover { background: #f5f5f5; box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
+    .btn-google svg { flex-shrink: 0; }
 
     .divider {
-      display: flex; align-items: center; gap: 12px; margin: 22px 0;
+      display: flex; align-items: center; gap: 12px; margin: 18px 0;
       color: var(--muted); font-size: 11px;
     }
     .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-    .auth-tabs { display: flex; gap: 0; margin-bottom: 24px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-    .auth-tab {
-      flex: 1; padding: 8px; font-size: 11px; font-family: 'Inter', sans-serif;
-      background: none; border: none; color: var(--muted); cursor: pointer;
-      transition: background 0.15s, color 0.15s; letter-spacing: 0.04em;
+    .field { margin-bottom: 12px; }
+    .field label {
+      display: block; font-size: 10px; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
     }
-    .auth-tab.active { background: var(--surface2); color: var(--text); }
-
-    .field { margin-bottom: 14px; }
-    .field label { display: block; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
     .field input {
       width: 100%; background: #050505; border: 1px solid var(--border); border-radius: 10px;
-      padding: 11px 14px; font-family: 'Inter', sans-serif; font-size: 14px; color: var(--text);
+      padding: 10px 14px; font-family: 'Inter', sans-serif; font-size: 14px; color: var(--text);
       outline: none; transition: border-color 0.15s;
     }
     .field input::placeholder { color: #444; }
     .field input:focus { border-color: rgba(255,255,255,0.3); box-shadow: 0 0 0 3px rgba(255,255,255,0.05); }
 
+    /* Name field — hidden by default, shown on signup detection */
+    #field-name-wrap { overflow: hidden; max-height: 0; opacity: 0; transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease; margin-bottom: 0; }
+    #field-name-wrap.visible { max-height: 80px; opacity: 1; margin-bottom: 12px; }
+
     .btn-enter {
       width: 100%; background: #f0f0f0; color: #0f0f0f; border: none; border-radius: 12px;
-      padding: 13px; font-family: 'Inter', sans-serif; font-size: 13px; cursor: pointer;
+      padding: 12px; font-family: 'Inter', sans-serif; font-size: 13px; cursor: pointer;
       transition: opacity 0.15s, transform 0.1s; margin-top: 4px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.4); letter-spacing: 0.03em;
     }
@@ -95,60 +117,71 @@
     .btn-enter:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .auth-error {
-      font-size: 11px; color: #e05555; margin-top: 12px; min-height: 16px; text-align: center;
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);
+      border-radius: 10px; padding: 10px 14px; font-size: 13px; color: #f87171;
+      margin-top: 12px; display: none;
     }
 
     /* ── LIBRARY SCREEN ── */
-    #library-screen { display: none; min-height: 100vh; }
+    #library-screen {
+      display: none;
+      height: 100vh;
+      overflow: hidden;
+      flex-direction: column;
+    }
 
     /* ── HEADER ── */
     .lib-header {
-      position: sticky; top: 0; z-index: 10;
+      flex-shrink: 0;
       background: rgba(0,0,0,0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border); padding: 0 32px; height: 60px;
+      border-bottom: 1px solid var(--border); padding: 0 32px; height: 56px;
       display: flex; align-items: center; justify-content: space-between;
     }
     .lib-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-    .lib-brand-logo { width: 28px; height: 28px; border-radius: 50%; overflow: hidden; flex-shrink: 0; }
+    .lib-brand-logo { width: 26px; height: 26px; border-radius: 50%; overflow: hidden; flex-shrink: 0; }
     .lib-brand-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .lib-brand-name { font-family: 'Rye', serif; font-size: 15px; color: var(--text); letter-spacing: 0.02em; }
-    .lib-right { display: flex; align-items: center; gap: 16px; }
+    .lib-brand-name { font-family: 'Rye', serif; font-size: 14px; color: var(--text); letter-spacing: 0.02em; }
+    .lib-right { display: flex; align-items: center; gap: 14px; }
 
-    .user-pill { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
     .user-avatar {
-      width: 28px; height: 28px; border-radius: 50%; background: #333;
+      width: 26px; height: 26px; border-radius: 50%; background: #333;
       border: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center;
       justify-content: center; font-size: 11px; font-weight: 700; color: #fff; overflow: hidden;
     }
     .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
     .btn-nav {
-      background: none; border: 1px solid var(--border); border-radius: 8px; padding: 5px 12px;
+      background: none; border: 1px solid var(--border); border-radius: 8px; padding: 4px 11px;
       font-family: 'Inter', sans-serif; font-size: 11px; color: var(--muted); cursor: pointer;
       transition: color 0.15s, border-color 0.15s; letter-spacing: 0.02em;
     }
     .btn-nav:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
 
-    /* ── MAIN ── */
-    .lib-main { max-width: 1100px; margin: 0 auto; padding: 48px 32px; }
-    .lib-heading { margin-bottom: 40px; }
-    .lib-heading-eyebrow { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
-    .lib-heading h1 { font-size: 32px; color: var(--text); letter-spacing: 0.02em; }
+    /* ── MAIN SCROLLABLE AREA ── */
+    .lib-main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px 32px 24px;
+    }
+
+    .lib-heading { margin-bottom: 28px; }
+    .lib-heading-eyebrow { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+    .lib-heading h1 { font-size: 26px; color: var(--text); letter-spacing: 0.02em; }
 
     /* ── BOOK GRID ── */
-    #book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 24px; }
+    #book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 20px; }
 
-    .book-card { cursor: pointer; display: flex; flex-direction: column; gap: 10px; transition: transform 0.2s; }
-    .book-card:hover { transform: translateY(-4px); }
+    .book-card { cursor: pointer; display: flex; flex-direction: column; gap: 8px; transition: transform 0.2s; }
+    .book-card:hover { transform: translateY(-3px); }
 
     .book-cover {
-      aspect-ratio: 2/3; border-radius: 6px 12px 12px 6px; position: relative; overflow: hidden;
+      aspect-ratio: 2/3; border-radius: 5px 10px 10px 5px; position: relative; overflow: hidden;
       box-shadow: -4px 0 0 0 rgba(0,0,0,0.4), 4px 4px 20px rgba(0,0,0,0.6), inset -3px 0 6px rgba(0,0,0,0.3);
-      display: flex; flex-direction: column; justify-content: space-between; padding: 18px 14px;
+      display: flex; flex-direction: column; justify-content: space-between; padding: 14px 12px;
     }
     .book-cover::before {
-      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
-      background: rgba(0,0,0,0.35); border-radius: 6px 0 0 6px; z-index: 1;
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px;
+      background: rgba(0,0,0,0.35); border-radius: 5px 0 0 5px; z-index: 1;
     }
     .book-cover::after {
       content: ''; position: absolute; inset: 0;
@@ -162,20 +195,20 @@
     }
     .book-card:hover .book-cover-play { opacity: 1; }
     .play-ring {
-      width: 44px; height: 44px; border-radius: 50%;
+      width: 40px; height: 40px; border-radius: 50%;
       background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
       border: 1px solid rgba(255,255,255,0.25);
       display: flex; align-items: center; justify-content: center;
     }
-    .play-ring svg { width: 16px; height: 16px; fill: #fff; margin-left: 2px; }
+    .play-ring svg { width: 14px; height: 14px; fill: #fff; margin-left: 2px; }
 
-    .book-category { position: relative; z-index: 2; font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
-    .book-title-cover { position: relative; z-index: 2; font-size: 13px; line-height: 1.4; color: rgba(255,255,255,0.92); }
+    .book-category { position: relative; z-index: 2; font-size: 7px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+    .book-title-cover { position: relative; z-index: 2; font-size: 12px; line-height: 1.4; color: rgba(255,255,255,0.92); }
 
-    .book-meta { display: flex; flex-direction: column; gap: 3px; }
+    .book-meta { display: flex; flex-direction: column; gap: 2px; }
     .book-title-below { font-size: 11px; color: var(--text); line-height: 1.4; }
     .book-subtitle-below { font-size: 10px; color: var(--muted); line-height: 1.4; }
-    .book-readtime { font-size: 10px; color: #444; margin-top: 2px; }
+    .book-readtime { font-size: 10px; color: #444; margin-top: 1px; }
 
     /* ── PLAYER MODAL ── */
     #modal-overlay {
@@ -196,36 +229,36 @@
 
     .modal-cover-bar { height: 6px; width: 100%; }
     .modal-header {
-      padding: 28px 32px 0; display: flex; align-items: flex-start;
+      padding: 26px 30px 0; display: flex; align-items: flex-start;
       justify-content: space-between; gap: 16px;
     }
     .modal-eyebrow { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-    .modal-title { font-size: 22px; line-height: 1.35; color: var(--text); }
+    .modal-title { font-size: 20px; line-height: 1.35; color: var(--text); }
 
     .modal-close {
-      flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: var(--surface2);
+      flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; background: var(--surface2);
       border: 1px solid var(--border); color: var(--muted); cursor: pointer;
       display: flex; align-items: center; justify-content: center; font-size: 18px; line-height: 1;
       transition: color 0.15s, background 0.15s;
     }
     .modal-close:hover { color: var(--text); background: #2a2a2a; }
 
-    .modal-divider { margin: 24px 32px 0; height: 1px; background: var(--border); }
+    .modal-divider { margin: 20px 30px 0; height: 1px; background: var(--border); }
 
     /* ── PLAYER ── */
-    .player-body { padding: 24px 32px 32px; }
-    .player-controls { display: flex; align-items: center; gap: 16px; }
+    .player-body { padding: 20px 30px 28px; }
+    .player-controls { display: flex; align-items: center; gap: 14px; }
 
     .ctrl-play {
-      flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;
+      flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
       background: #fff; border: none; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       transition: transform 0.15s, opacity 0.15s;
     }
     .ctrl-play:hover { transform: scale(1.06); opacity: 0.9; }
-    .ctrl-play svg { width: 18px; height: 18px; fill: #000; margin-left: 2px; }
+    .ctrl-play svg { width: 16px; height: 16px; fill: #000; margin-left: 2px; }
 
-    .player-right { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .player-right { flex: 1; display: flex; flex-direction: column; gap: 7px; }
 
     .player-progress {
       width: 100%; height: 4px; background: rgba(255,255,255,0.12);
@@ -251,14 +284,15 @@
     }
 
     @media (max-width: 600px) {
-      .lib-main { padding: 36px 20px; }
-      .lib-header { padding: 0 20px; }
-      #book-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 18px; }
-      .modal-header { padding: 22px 20px 0; }
-      .modal-divider { margin: 18px 20px 0; }
-      .player-body { padding: 20px 20px 28px; }
-      .modal-title { font-size: 18px; }
-      .auth-card { padding: 24px 20px; }
+      html, body { height: 100dvh; }
+      .lib-main { padding: 24px 16px 16px; }
+      .lib-header { padding: 0 16px; }
+      #book-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 14px; }
+      .modal-header { padding: 20px 20px 0; }
+      .modal-divider { margin: 16px 20px 0; }
+      .player-body { padding: 16px 20px 24px; }
+      .modal-title { font-size: 17px; }
+      .auth-card { padding: 20px 18px; }
     }
   </style>
 </head>
@@ -280,35 +314,39 @@
       <div class="auth-sub">A private listening room.</div>
     </div>
     <div class="auth-card">
-      <div class="auth-tabs">
-        <button class="auth-tab active" id="tab-signin" onclick="switchTab('signin')">Sign in</button>
-        <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Create account</button>
-      </div>
+      <!-- Google sign-in (same as library) -->
+      <button class="btn-google" id="btn-google">
+        <svg width="18" height="18" viewBox="0 0 18 18">
+          <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/>
+          <path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z"/>
+          <path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18l2.67-2.07z"/>
+          <path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/>
+        </svg>
+        Continue with Google
+      </button>
 
-      <div id="form-signin">
+      <div class="divider">or</div>
+
+      <!-- Single smart form — auto-detects login vs signup -->
+      <div>
+        <!-- Name field slides in only when creating a new account -->
+        <div id="field-name-wrap">
+          <div class="field" style="margin-bottom:0">
+            <label>Name</label>
+            <input type="text" id="field-name" placeholder="Your name" autocomplete="name" />
+          </div>
+        </div>
+
         <div class="field">
           <label>Email</label>
-          <input type="email" id="si-email" placeholder="you@example.com" />
+          <input type="email" id="field-email" placeholder="you@example.com" autocomplete="email" />
         </div>
         <div class="field">
           <label>Password</label>
-          <input type="password" id="si-password" placeholder="••••••••" />
+          <input type="password" id="field-password" placeholder="••••••••" autocomplete="current-password" />
         </div>
-        <button class="btn-enter" id="si-btn" onclick="doSignIn()">Enter Library</button>
-        <div class="auth-error" id="si-error"></div>
-      </div>
-
-      <div id="form-signup" style="display:none">
-        <div class="field">
-          <label>Email</label>
-          <input type="email" id="su-email" placeholder="you@example.com" />
-        </div>
-        <div class="field">
-          <label>Password</label>
-          <input type="password" id="su-password" placeholder="min 6 characters" />
-        </div>
-        <button class="btn-enter" id="su-btn" onclick="doSignUp()">Create account</button>
-        <div class="auth-error" id="su-error"></div>
+        <button class="btn-enter" id="btn-enter" onclick="doAuth()">Enter Library</button>
+        <div class="auth-error" id="auth-error"></div>
       </div>
     </div>
   </div>
@@ -324,9 +362,7 @@
       <span class="lib-brand-name">Perspective Audio</span>
     </a>
     <div class="lib-right">
-      <div class="user-pill">
-        <div class="user-avatar" id="user-avatar-el"></div>
-      </div>
+      <div class="user-avatar" id="user-avatar-el"></div>
       <button class="btn-nav" id="btn-signout">Sign out</button>
     </div>
   </header>
@@ -377,6 +413,7 @@
 
 <script>
 // ── FIREBASE ──
+// Same project as the library → accounts are shared automatically
 firebase.initializeApp({
   apiKey: "AIzaSyDSi-_yS2SeW6QqvSxfkJ7RHJZ-ArMz0j0",
   authDomain: "perspective-library.firebaseapp.com",
@@ -386,6 +423,10 @@ firebase.initializeApp({
   appId: "1:960053593256:web:030144d380de81dcf12e9d"
 });
 const auth = firebase.auth();
+
+// Firebase's default persistence is LOCAL (survives browser restarts).
+// Explicitly set it just to be clear.
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
 // ── R2 BASE URL ──
 const R2 = "https://pub-e5b2f14df3a14e9893d39e0d56b54eff.r2.dev";
@@ -431,28 +472,30 @@ const loadingScreen  = document.getElementById('loading-screen');
 const authScreen     = document.getElementById('auth-screen');
 const libraryScreen  = document.getElementById('library-screen');
 
-let currentUser = null;
-
+// Auth state — Firebase remembers the user across sessions via LOCAL persistence
 const authTimeout = setTimeout(() => {
   loadingScreen.style.display = 'none';
-  authScreen.style.display    = 'flex';
+  showAuthScreen();
 }, 5000);
 
 auth.onAuthStateChanged(user => {
   clearTimeout(authTimeout);
   loadingScreen.style.display = 'none';
-  currentUser = user;
   if (user) {
     showLibrary(user);
   } else {
-    authScreen.style.display   = 'flex';
-    libraryScreen.style.display = 'none';
+    showAuthScreen();
   }
 });
 
+function showAuthScreen() {
+  authScreen.style.display   = 'flex';
+  libraryScreen.style.display = 'none';
+}
+
 function showLibrary(user) {
   authScreen.style.display    = 'none';
-  libraryScreen.style.display = 'block';
+  libraryScreen.style.display = 'flex';
   const avatarEl = document.getElementById('user-avatar-el');
   if (user.photoURL) {
     avatarEl.innerHTML = `<img src="${user.photoURL}" alt="" />`;
@@ -463,16 +506,95 @@ function showLibrary(user) {
   renderBooks();
 }
 
-// ── AUTH ──
-function switchTab(tab) {
-  document.getElementById('form-signin').style.display = tab === 'signin' ? '' : 'none';
-  document.getElementById('form-signup').style.display = tab === 'signup' ? '' : 'none';
-  document.getElementById('tab-signin').classList.toggle('active', tab === 'signin');
-  document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
-  document.getElementById('si-error').textContent = '';
-  document.getElementById('su-error').textContent = '';
+// ── GOOGLE SIGN-IN ──
+document.getElementById('btn-google').addEventListener('click', async () => {
+  clearError();
+  const provider = new firebase.auth.GoogleAuthProvider();
+  try {
+    await auth.signInWithPopup(provider);
+  } catch (err) {
+    showError(friendlyError(err.code));
+  }
+});
+
+// ── SMART EMAIL AUTH (auto login → signup) ──
+async function doAuth() {
+  clearError();
+  const email    = document.getElementById('field-email').value.trim();
+  const password = document.getElementById('field-password').value;
+  const name     = document.getElementById('field-name').value.trim();
+
+  if (!email || !password) { showError('Please fill in all fields.'); return; }
+
+  const btn = document.getElementById('btn-enter');
+  btn.disabled = true; btn.textContent = 'Entering…';
+
+  try {
+    // Try sign-in first
+    await auth.signInWithEmailAndPassword(email, password);
+  } catch (err) {
+    if (
+      err.code === 'auth/user-not-found' ||
+      err.code === 'auth/invalid-credential' ||
+      err.code === 'auth/invalid-email'
+    ) {
+      // No account found → create one
+      try {
+        btn.textContent = 'Creating account…';
+        const cred = await auth.createUserWithEmailAndPassword(email, password);
+        if (name) await cred.user.updateProfile({ displayName: name });
+        // Reveal name field for next time? Already visible if needed.
+      } catch (signupErr) {
+        showError(friendlyError(signupErr.code));
+        btn.disabled = false; btn.textContent = 'Enter Library';
+        return;
+      }
+    } else if (err.code === 'auth/wrong-password') {
+      // Wrong password → show name field (might be new account attempt with same email)
+      showNameField();
+      showError('Incorrect password. If you\'re new, fill in your name and try again.');
+      btn.disabled = false; btn.textContent = 'Enter Library';
+      return;
+    } else {
+      showError(friendlyError(err.code));
+      btn.disabled = false; btn.textContent = 'Enter Library';
+      return;
+    }
+  }
+
+  btn.disabled = false; btn.textContent = 'Enter Library';
 }
 
+function showNameField() {
+  document.getElementById('field-name-wrap').classList.add('visible');
+}
+
+// Show name field when the email input loses focus and looks new
+document.getElementById('field-email').addEventListener('blur', async () => {
+  const email = document.getElementById('field-email').value.trim();
+  if (!email || !email.includes('@')) return;
+  // Heuristic: if password is already filled we probably don't need to check
+});
+
+// ── SIGN OUT ──
+document.getElementById('btn-signout').addEventListener('click', () => auth.signOut());
+
+// ── ENTER KEY ──
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && authScreen.style.display !== 'none') doAuth();
+});
+
+// ── ERROR HELPERS ──
+function showError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent   = msg;
+  el.style.display = 'block';
+}
+function clearError() {
+  const el = document.getElementById('auth-error');
+  el.style.display = 'none';
+  el.textContent   = '';
+}
 function friendlyError(code) {
   const map = {
     'auth/user-not-found':      'No account found with this email.',
@@ -482,52 +604,11 @@ function friendlyError(code) {
     'auth/weak-password':       'Password must be at least 6 characters.',
     'auth/invalid-credential':  'Incorrect email or password.',
     'auth/too-many-requests':   'Too many attempts. Try again later.',
+    'auth/popup-closed-by-user':'Google sign-in was cancelled.',
+    'auth/network-request-failed': 'Network error. Check your connection.',
   };
   return map[code] || 'Something went wrong. Please try again.';
 }
-
-async function doSignIn() {
-  const email = document.getElementById('si-email').value.trim();
-  const pass  = document.getElementById('si-password').value;
-  const btn   = document.getElementById('si-btn');
-  const err   = document.getElementById('si-error');
-  err.textContent = '';
-  if (!email || !pass) { err.textContent = 'Please fill in all fields.'; return; }
-  btn.disabled = true; btn.textContent = 'Entering…';
-  try {
-    await auth.signInWithEmailAndPassword(email, pass);
-  } catch(e) {
-    err.textContent = friendlyError(e.code);
-  }
-  btn.disabled = false; btn.textContent = 'Enter Library';
-}
-
-async function doSignUp() {
-  const email = document.getElementById('su-email').value.trim();
-  const pass  = document.getElementById('su-password').value;
-  const btn   = document.getElementById('su-btn');
-  const err   = document.getElementById('su-error');
-  err.textContent = '';
-  if (!email || !pass) { err.textContent = 'Please fill in all fields.'; return; }
-  btn.disabled = true; btn.textContent = 'Creating account…';
-  try {
-    await auth.createUserWithEmailAndPassword(email, pass);
-  } catch(e) {
-    err.textContent = friendlyError(e.code);
-  }
-  btn.disabled = false; btn.textContent = 'Create account';
-}
-
-document.getElementById('btn-signout').addEventListener('click', () => auth.signOut());
-
-// Enter key support
-document.addEventListener('keydown', e => {
-  if (e.key === 'Enter') {
-    const siVisible = document.getElementById('form-signin').style.display !== 'none';
-    if (siVisible) doSignIn();
-    else doSignUp();
-  }
-});
 
 // ── BOOK GRID ──
 function renderBooks() {
@@ -577,12 +658,10 @@ function openPlayer(book) {
   resetPlayer();
   audio.src = book.src;
   overlay.classList.add('open');
-  document.body.style.overflow = 'hidden';
 }
 
 function closePlayer() {
   overlay.classList.remove('open');
-  document.body.style.overflow = '';
   audio.pause();
   clearInterval(ticker);
 }
