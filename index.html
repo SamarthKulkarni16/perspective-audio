@@ -5,13 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Perspective Audio</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Rye&display=swap" rel="stylesheet">
+  <!-- Favicon -->
+  <link rel="icon" type="image/jpeg" href="logo.jpeg" />
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Rye&display=swap" rel="stylesheet">
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -24,7 +27,6 @@
       --text: #f0f0f0;
       --muted: #666;
       --accent: #e8e8e8;
-      --accent-dim: rgba(255,255,255,0.05);
     }
 
     html, body {
@@ -35,6 +37,70 @@
       -webkit-font-smoothing: antialiased;
     }
 
+    /* ── LOADING ── */
+    #loading-screen {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    }
+    .spinner {
+      width: 28px; height: 28px; border: 2px solid rgba(255,255,255,0.1);
+      border-top-color: #ccc; border-radius: 50%; animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── AUTH SCREEN ── */
+    #auth-screen {
+      min-height: 100vh; display: none; align-items: center;
+      justify-content: center; padding: 24px;
+    }
+    .auth-box { width: 100%; max-width: 380px; }
+    .auth-header { text-align: center; margin-bottom: 36px; }
+    .auth-logo { display: block; margin: 0 auto 18px; width: 72px; height: 72px; border-radius: 50%; overflow: hidden; }
+    .auth-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .auth-title { font-family: 'Rye', serif; font-size: 24px; color: var(--text); letter-spacing: 0.02em; }
+    .auth-sub { margin-top: 6px; font-size: 12px; color: var(--muted); letter-spacing: 0.04em; }
+    .auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px; }
+
+    .divider {
+      display: flex; align-items: center; gap: 12px; margin: 22px 0;
+      color: var(--muted); font-size: 11px;
+    }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    .auth-tabs { display: flex; gap: 0; margin-bottom: 24px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .auth-tab {
+      flex: 1; padding: 8px; font-size: 11px; font-family: 'Inter', sans-serif;
+      background: none; border: none; color: var(--muted); cursor: pointer;
+      transition: background 0.15s, color 0.15s; letter-spacing: 0.04em;
+    }
+    .auth-tab.active { background: var(--surface2); color: var(--text); }
+
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .field input {
+      width: 100%; background: #050505; border: 1px solid var(--border); border-radius: 10px;
+      padding: 11px 14px; font-family: 'Inter', sans-serif; font-size: 14px; color: var(--text);
+      outline: none; transition: border-color 0.15s;
+    }
+    .field input::placeholder { color: #444; }
+    .field input:focus { border-color: rgba(255,255,255,0.3); box-shadow: 0 0 0 3px rgba(255,255,255,0.05); }
+
+    .btn-enter {
+      width: 100%; background: #f0f0f0; color: #0f0f0f; border: none; border-radius: 12px;
+      padding: 13px; font-family: 'Inter', sans-serif; font-size: 13px; cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s; margin-top: 4px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4); letter-spacing: 0.03em;
+    }
+    .btn-enter:hover { opacity: 0.9; }
+    .btn-enter:active { transform: scale(0.99); }
+    .btn-enter:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .auth-error {
+      font-size: 11px; color: #e05555; margin-top: 12px; min-height: 16px; text-align: center;
+    }
+
+    /* ── LIBRARY SCREEN ── */
+    #library-screen { display: none; min-height: 100vh; }
+
     /* ── HEADER ── */
     .lib-header {
       position: sticky; top: 0; z-index: 10;
@@ -42,20 +108,24 @@
       border-bottom: 1px solid var(--border); padding: 0 32px; height: 60px;
       display: flex; align-items: center; justify-content: space-between;
     }
-    .lib-brand { display: flex; align-items: center; gap: 10px; font-family: 'Rye', serif; font-size: 15px; color: var(--text); letter-spacing: 0.02em; text-decoration: none; }
-    .lib-brand-dot { width: 6px; height: 6px; border-radius: 50%; background: #fff; flex-shrink: 0; }
+    .lib-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .lib-brand-logo { width: 28px; height: 28px; border-radius: 50%; overflow: hidden; flex-shrink: 0; }
+    .lib-brand-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .lib-brand-name { font-family: 'Rye', serif; font-size: 15px; color: var(--text); letter-spacing: 0.02em; }
     .lib-right { display: flex; align-items: center; gap: 16px; }
 
-    .user-name {
-      font-size: 11px; color: var(--muted); letter-spacing: 0.02em;
-      max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    .user-pill { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+    .user-avatar {
+      width: 28px; height: 28px; border-radius: 50%; background: #333;
+      border: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center;
+      justify-content: center; font-size: 11px; font-weight: 700; color: #fff; overflow: hidden;
     }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
     .btn-nav {
       background: none; border: 1px solid var(--border); border-radius: 8px; padding: 5px 12px;
       font-family: 'Inter', sans-serif; font-size: 11px; color: var(--muted); cursor: pointer;
       transition: color 0.15s, border-color 0.15s; letter-spacing: 0.02em;
-      text-decoration: none; display: inline-block; line-height: 1.8;
     }
     .btn-nav:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
 
@@ -70,7 +140,6 @@
 
     .book-card { cursor: pointer; display: flex; flex-direction: column; gap: 10px; transition: transform 0.2s; }
     .book-card:hover { transform: translateY(-4px); }
-    .book-card.coming-soon { opacity: 0.4; cursor: default; pointer-events: none; }
 
     .book-cover {
       aspect-ratio: 2/3; border-radius: 6px 12px 12px 6px; position: relative; overflow: hidden;
@@ -89,8 +158,7 @@
     .book-cover-play {
       position: absolute; inset: 0; z-index: 3;
       display: flex; align-items: center; justify-content: center;
-      opacity: 0; transition: opacity 0.2s;
-      background: rgba(0,0,0,0.25);
+      opacity: 0; transition: opacity 0.2s; background: rgba(0,0,0,0.25);
     }
     .book-card:hover .book-cover-play { opacity: 1; }
     .play-ring {
@@ -109,61 +177,7 @@
     .book-subtitle-below { font-size: 10px; color: var(--muted); line-height: 1.4; }
     .book-readtime { font-size: 10px; color: #444; margin-top: 2px; }
 
-    /* ── AUTH WALL ── */
-    #auth-wall {
-      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200;
-      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-      align-items: center; justify-content: center; padding: 24px;
-    }
-    #auth-wall.open { display: flex; }
-
-    .auth-box {
-      background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
-      width: 100%; max-width: 380px; padding: 40px 36px;
-      animation: modal-in 0.2s ease;
-    }
-    .auth-eyebrow { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-    .auth-title { font-size: 22px; color: var(--text); margin-bottom: 8px; }
-    .auth-sub { font-size: 12px; color: var(--muted); margin-bottom: 28px; line-height: 1.6; }
-
-    .auth-tabs { display: flex; gap: 0; margin-bottom: 24px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-    .auth-tab {
-      flex: 1; padding: 8px; font-size: 11px; font-family: 'Inter', sans-serif;
-      background: none; border: none; color: var(--muted); cursor: pointer;
-      transition: background 0.15s, color 0.15s; letter-spacing: 0.04em;
-    }
-    .auth-tab.active { background: var(--surface2); color: var(--text); }
-
-    .auth-field { margin-bottom: 14px; }
-    .auth-field label { display: block; font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
-    .auth-field input {
-      width: 100%; background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 8px; padding: 10px 14px; font-size: 13px; font-family: 'Inter', sans-serif;
-      color: var(--text); outline: none; transition: border-color 0.15s;
-    }
-    .auth-field input:focus { border-color: rgba(255,255,255,0.2); }
-
-    .auth-error { font-size: 11px; color: #e05555; margin-bottom: 14px; min-height: 16px; }
-
-    .btn-auth {
-      width: 100%; padding: 11px; background: #fff; color: #000;
-      border: none; border-radius: 8px; font-size: 13px; font-family: 'Inter', sans-serif;
-      font-weight: 500; cursor: pointer; transition: opacity 0.15s; letter-spacing: 0.02em;
-    }
-    .btn-auth:hover { opacity: 0.88; }
-    .btn-auth:disabled { opacity: 0.4; cursor: default; }
-
-    .auth-close {
-      position: absolute; top: 16px; right: 16px;
-      width: 32px; height: 32px; border-radius: 50%; background: var(--surface2);
-      border: 1px solid var(--border); color: var(--muted); cursor: pointer;
-      display: flex; align-items: center; justify-content: center; font-size: 18px;
-      transition: color 0.15s;
-    }
-    .auth-close:hover { color: var(--text); }
-    .auth-box { position: relative; }
-
-    /* ── MODAL ── */
+    /* ── PLAYER MODAL ── */
     #modal-overlay {
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 100;
       backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); padding: 24px; overflow-y: auto;
@@ -181,7 +195,6 @@
     }
 
     .modal-cover-bar { height: 6px; width: 100%; }
-
     .modal-header {
       padding: 28px 32px 0; display: flex; align-items: flex-start;
       justify-content: space-between; gap: 16px;
@@ -216,8 +229,7 @@
 
     .player-progress {
       width: 100%; height: 4px; background: rgba(255,255,255,0.12);
-      border-radius: 99px; cursor: pointer; position: relative;
-      transition: height 0.15s;
+      border-radius: 99px; cursor: pointer; position: relative; transition: height 0.15s;
     }
     .player-progress:hover { height: 6px; }
     .player-bar {
@@ -246,72 +258,86 @@
       .modal-divider { margin: 18px 20px 0; }
       .player-body { padding: 20px 20px 28px; }
       .modal-title { font-size: 18px; }
-      .auth-box { padding: 32px 24px; }
+      .auth-card { padding: 24px 20px; }
     }
   </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header class="lib-header">
-  <a class="lib-brand" href="#">
-    <div class="lib-brand-dot"></div>
-    Perspective Audio
-  </a>
-  <div class="lib-right">
-    <span class="user-name" id="header-username"></span>
-    <button class="btn-nav" id="auth-btn">Sign in</button>
-  </div>
-</header>
+<!-- LOADING -->
+<div id="loading-screen">
+  <div class="spinner"></div>
+</div>
 
-<!-- MAIN -->
-<main class="lib-main">
-  <div class="lib-heading">
-    <div class="lib-heading-eyebrow">Your Collection</div>
-    <h1>The Library</h1>
-  </div>
-  <div id="book-grid"></div>
-</main>
-
-<!-- AUTH WALL -->
-<div id="auth-wall">
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
   <div class="auth-box">
-    <button class="auth-close" id="auth-wall-close">&#215;</button>
-    <div class="auth-eyebrow">Perspective Audio</div>
-    <div class="auth-title">Sign in to listen</div>
-    <div class="auth-sub">Your account works across the entire Perspective collection.</div>
-
-    <div class="auth-tabs">
-      <button class="auth-tab active" id="tab-signin" onclick="switchTab('signin')">Sign in</button>
-      <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Create account</button>
+    <div class="auth-header">
+      <div class="auth-logo">
+        <img src="logo.jpeg" alt="Perspective Audio" />
+      </div>
+      <div class="auth-title">Perspective Audio</div>
+      <div class="auth-sub">A private listening room.</div>
     </div>
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-signin" onclick="switchTab('signin')">Sign in</button>
+        <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Create account</button>
+      </div>
 
-    <div id="form-signin">
-      <div class="auth-field">
-        <label>Email</label>
-        <input type="email" id="si-email" placeholder="you@example.com" />
+      <div id="form-signin">
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="si-email" placeholder="you@example.com" />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="si-password" placeholder="••••••••" />
+        </div>
+        <button class="btn-enter" id="si-btn" onclick="doSignIn()">Enter Library</button>
+        <div class="auth-error" id="si-error"></div>
       </div>
-      <div class="auth-field">
-        <label>Password</label>
-        <input type="password" id="si-password" placeholder="••••••••" />
-      </div>
-      <div class="auth-error" id="si-error"></div>
-      <button class="btn-auth" id="si-btn" onclick="doSignIn()">Sign in</button>
-    </div>
 
-    <div id="form-signup" style="display:none">
-      <div class="auth-field">
-        <label>Email</label>
-        <input type="email" id="su-email" placeholder="you@example.com" />
+      <div id="form-signup" style="display:none">
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="su-email" placeholder="you@example.com" />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="su-password" placeholder="min 6 characters" />
+        </div>
+        <button class="btn-enter" id="su-btn" onclick="doSignUp()">Create account</button>
+        <div class="auth-error" id="su-error"></div>
       </div>
-      <div class="auth-field">
-        <label>Password</label>
-        <input type="password" id="su-password" placeholder="min 6 characters" />
-      </div>
-      <div class="auth-error" id="su-error"></div>
-      <button class="btn-auth" id="su-btn" onclick="doSignUp()">Create account</button>
     </div>
   </div>
+</div>
+
+<!-- LIBRARY SCREEN -->
+<div id="library-screen">
+  <header class="lib-header">
+    <a class="lib-brand" href="#">
+      <div class="lib-brand-logo">
+        <img src="logo.jpeg" alt="Perspective Audio" />
+      </div>
+      <span class="lib-brand-name">Perspective Audio</span>
+    </a>
+    <div class="lib-right">
+      <div class="user-pill">
+        <div class="user-avatar" id="user-avatar-el"></div>
+      </div>
+      <button class="btn-nav" id="btn-signout">Sign out</button>
+    </div>
+  </header>
+
+  <main class="lib-main">
+    <div class="lib-heading">
+      <div class="lib-heading-eyebrow">Your Collection</div>
+      <h1>The Library</h1>
+    </div>
+    <div id="book-grid"></div>
+  </main>
 </div>
 
 <!-- PLAYER MODAL -->
@@ -400,45 +426,49 @@ const AUDIOBOOKS = [
   },
 ];
 
-// ── AUTH STATE ──
+// ── SCREENS ──
+const loadingScreen  = document.getElementById('loading-screen');
+const authScreen     = document.getElementById('auth-screen');
+const libraryScreen  = document.getElementById('library-screen');
+
 let currentUser = null;
 
+const authTimeout = setTimeout(() => {
+  loadingScreen.style.display = 'none';
+  authScreen.style.display    = 'flex';
+}, 5000);
+
 auth.onAuthStateChanged(user => {
+  clearTimeout(authTimeout);
+  loadingScreen.style.display = 'none';
   currentUser = user;
-  const btn      = document.getElementById('auth-btn');
-  const nameEl   = document.getElementById('header-username');
   if (user) {
-    nameEl.textContent = user.email;
-    btn.textContent    = 'Sign out';
-    btn.onclick        = doSignOut;
+    showLibrary(user);
   } else {
-    nameEl.textContent = '';
-    btn.textContent    = 'Sign in';
-    btn.onclick        = openAuthWall;
+    authScreen.style.display   = 'flex';
+    libraryScreen.style.display = 'none';
   }
 });
 
-// ── AUTH FUNCTIONS ──
-function openAuthWall() {
-  document.getElementById('auth-wall').classList.add('open');
-  document.body.style.overflow = 'hidden';
+function showLibrary(user) {
+  authScreen.style.display    = 'none';
+  libraryScreen.style.display = 'block';
+  const avatarEl = document.getElementById('user-avatar-el');
+  if (user.photoURL) {
+    avatarEl.innerHTML = `<img src="${user.photoURL}" alt="" />`;
+  } else {
+    const name = user.displayName || user.email || '?';
+    avatarEl.textContent = name[0].toUpperCase();
+  }
+  renderBooks();
 }
 
-function closeAuthWall() {
-  document.getElementById('auth-wall').classList.remove('open');
-  document.body.style.overflow = '';
-  clearErrors();
-}
-
+// ── AUTH ──
 function switchTab(tab) {
   document.getElementById('form-signin').style.display = tab === 'signin' ? '' : 'none';
   document.getElementById('form-signup').style.display = tab === 'signup' ? '' : 'none';
   document.getElementById('tab-signin').classList.toggle('active', tab === 'signin');
   document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
-  clearErrors();
-}
-
-function clearErrors() {
   document.getElementById('si-error').textContent = '';
   document.getElementById('su-error').textContent = '';
 }
@@ -461,15 +491,15 @@ async function doSignIn() {
   const pass  = document.getElementById('si-password').value;
   const btn   = document.getElementById('si-btn');
   const err   = document.getElementById('si-error');
+  err.textContent = '';
   if (!email || !pass) { err.textContent = 'Please fill in all fields.'; return; }
-  btn.disabled = true; btn.textContent = 'Signing in…';
+  btn.disabled = true; btn.textContent = 'Entering…';
   try {
     await auth.signInWithEmailAndPassword(email, pass);
-    closeAuthWall();
   } catch(e) {
     err.textContent = friendlyError(e.code);
   }
-  btn.disabled = false; btn.textContent = 'Sign in';
+  btn.disabled = false; btn.textContent = 'Enter Library';
 }
 
 async function doSignUp() {
@@ -477,25 +507,26 @@ async function doSignUp() {
   const pass  = document.getElementById('su-password').value;
   const btn   = document.getElementById('su-btn');
   const err   = document.getElementById('su-error');
+  err.textContent = '';
   if (!email || !pass) { err.textContent = 'Please fill in all fields.'; return; }
   btn.disabled = true; btn.textContent = 'Creating account…';
   try {
     await auth.createUserWithEmailAndPassword(email, pass);
-    closeAuthWall();
   } catch(e) {
     err.textContent = friendlyError(e.code);
   }
   btn.disabled = false; btn.textContent = 'Create account';
 }
 
-async function doSignOut() {
-  await auth.signOut();
-}
+document.getElementById('btn-signout').addEventListener('click', () => auth.signOut());
 
-document.getElementById('auth-btn').onclick = openAuthWall;
-document.getElementById('auth-wall-close').addEventListener('click', closeAuthWall);
-document.getElementById('auth-wall').addEventListener('click', e => {
-  if (e.target === document.getElementById('auth-wall')) closeAuthWall();
+// Enter key support
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const siVisible = document.getElementById('form-signin').style.display !== 'none';
+    if (siVisible) doSignIn();
+    else doSignUp();
+  }
 });
 
 // ── BOOK GRID ──
@@ -504,7 +535,7 @@ function renderBooks() {
   grid.innerHTML = '';
   AUDIOBOOKS.forEach(book => {
     const card = document.createElement('div');
-    card.className = 'book-card' + (book.comingSoon ? ' coming-soon' : '');
+    card.className = 'book-card';
     card.innerHTML = `
       <div class="book-cover" style="background: ${book.color}">
         <div class="book-category">${book.category}</div>
@@ -518,21 +549,12 @@ function renderBooks() {
       <div class="book-meta">
         <div class="book-title-below">${book.title}</div>
         ${book.subtitle ? `<div class="book-subtitle-below">${book.subtitle}</div>` : ''}
-        <div class="book-readtime">${book.comingSoon ? 'Coming soon' : book.duration + ' listen'}</div>
+        <div class="book-readtime">${book.duration} listen</div>
       </div>
     `;
-    if (!book.comingSoon) card.addEventListener('click', () => handleCardClick(book));
+    card.addEventListener('click', () => openPlayer(book));
     grid.appendChild(card);
   });
-}
-
-// ── CARD CLICK — gate with auth ──
-function handleCardClick(book) {
-  if (!currentUser) {
-    openAuthWall();
-    return;
-  }
-  openPlayer(book);
 }
 
 // ── PLAYER ──
@@ -553,7 +575,7 @@ function openPlayer(book) {
   document.getElementById('modal-cover-bar').style.background = book.color;
   timeDuration.textContent = book.duration || '0:00';
   resetPlayer();
-  if (book.src) audio.src = book.src;
+  audio.src = book.src;
   overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -629,8 +651,6 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closePlayer();
   if (e.key === ' ' && overlay.classList.contains('open')) { e.preventDefault(); togglePlay(); }
 });
-
-renderBooks();
 </script>
 </body>
 </html>
