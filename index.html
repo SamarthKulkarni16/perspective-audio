@@ -3,9 +3,70 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Perspective Audio</title>
+  <title>Perspective Audio — Free Audiobooks on Psychology, Emotions & Mindset</title>
+  <meta name="description" content="Free audiobooks by Samarth Kulkarni on psychology, emotions, and self-discipline. Listen to How To Use Anger To Your Advantage, Use Procrastination To Your Advantage, Use Conflicts To Your Advantage, and Survival — practical audio for why we feel and act the way we do." />
+  <meta name="keywords" content="audiobooks, psychology audiobook, emotions, self discipline, mindset, anger, procrastination, conflict resolution, survival mechanism, free audiobooks, perspective audio, samarth kulkarni" />
+  <meta name="author" content="Samarth Kulkarni" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://samarthkulkarni16.github.io/perspective-audio/" />
 
   <link rel="icon" type="image/jpeg" href="logo.jpeg" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Perspective Audio" />
+  <meta property="og:title" content="Perspective Audio — Free Audiobooks on Psychology, Emotions & Mindset" />
+  <meta property="og:description" content="Free audiobooks on psychology, emotions, and self-discipline — practical, no-fluff listening on why we feel and act the way we do." />
+  <meta property="og:url" content="https://samarthkulkarni16.github.io/perspective-audio/" />
+  <meta property="og:image" content="https://samarthkulkarni16.github.io/perspective-audio/logo.jpeg" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Perspective Audio — Free Audiobooks on Psychology, Emotions & Mindset" />
+  <meta name="twitter:description" content="Free audiobooks on psychology, emotions, and self-discipline by Samarth Kulkarni." />
+  <meta name="twitter:image" content="https://samarthkulkarni16.github.io/perspective-audio/logo.jpeg" />
+
+  <!-- Structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Perspective Audio",
+    "url": "https://samarthkulkarni16.github.io/perspective-audio/",
+    "description": "Free audiobooks on psychology, emotions, and self-discipline by Samarth Kulkarni.",
+    "publisher": { "@type": "Person", "name": "Samarth Kulkarni" },
+    "hasPart": [
+      {
+        "@type": "Audiobook",
+        "name": "How To Use Anger To Your Advantage",
+        "description": "Anger is not a problem if you know what it is.",
+        "genre": "Emotions",
+        "author": { "@type": "Person", "name": "Samarth Kulkarni" }
+      },
+      {
+        "@type": "Audiobook",
+        "name": "Use Procrastination To Your Advantage",
+        "description": "Stop fighting it. Start redirecting it.",
+        "genre": "Productivity",
+        "author": { "@type": "Person", "name": "Samarth Kulkarni" }
+      },
+      {
+        "@type": "Audiobook",
+        "name": "Use Conflicts To Your Advantage",
+        "description": "You don't need to escape problems. You need to upgrade them.",
+        "genre": "Mindset",
+        "author": { "@type": "Person", "name": "Samarth Kulkarni" }
+      },
+      {
+        "@type": "Audiobook",
+        "name": "Survival",
+        "description": "Understanding the basic of everything we do.",
+        "genre": "Psychology",
+        "author": { "@type": "Person", "name": "Samarth Kulkarni" }
+      }
+    ]
+  }
+  </script>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -32,10 +93,21 @@
       background: var(--bg);
       color: var(--text);
       font-family: 'Inter', sans-serif;
-      height: 100vh;
-      overflow: hidden;
+      min-height: 100vh;
+      overflow-y: auto;
       -webkit-font-smoothing: antialiased;
     }
+
+    /* Public SEO preview — visible to everyone, no login required */
+    #seo-preview { max-width: 720px; margin: 0 auto; padding: 56px 24px 80px; }
+    #seo-preview h1 { font-family: 'Rye', serif; font-size: 24px; margin-bottom: 10px; }
+    #seo-preview > p.intro { color: var(--muted); font-size: 14px; line-height: 1.6; margin-bottom: 32px; max-width: 560px; }
+    #seo-preview article { border-top: 1px solid var(--border); padding: 20px 0; }
+    #seo-preview article h2 { font-size: 16px; margin-bottom: 4px; }
+    #seo-preview article .cat { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+    #seo-preview article .sub { font-size: 13px; color: var(--muted); font-style: italic; }
+    #seo-preview .cta { margin-top: 32px; font-size: 12px; color: var(--muted); }
+    #seo-preview .cta a { color: var(--text); }
 
     /* ── LOADING ── */
     #loading-screen {
@@ -712,5 +784,37 @@ document.addEventListener('keydown', e => {
   if (e.key === ' ' && overlay.classList.contains('open')) { e.preventDefault(); togglePlay(); }
 });
 </script>
+
+<section id="seo-preview">
+  <h1>Perspective Audio — Free Audiobooks on Psychology, Emotions &amp; Mindset</h1>
+  <p class="intro">Short, practical audiobooks by Samarth Kulkarni on why we feel and act the way we do — no fluff, no filler. Sign in above to listen to any title in full, free.</p>
+
+  <article>
+    <div class="cat">Emotions</div>
+    <h2>How To Use Anger To Your Advantage</h2>
+    <div class="sub">Anger is not a problem if you know what it is</div>
+  </article>
+
+  <article>
+    <div class="cat">Productivity</div>
+    <h2>Use Procrastination To Your Advantage</h2>
+    <div class="sub">Stop fighting it. Start redirecting it.</div>
+  </article>
+
+  <article>
+    <div class="cat">Mindset</div>
+    <h2>Use Conflicts To Your Advantage</h2>
+    <div class="sub">You don't need to escape problems. You need to upgrade them.</div>
+  </article>
+
+  <article>
+    <div class="cat">Psychology</div>
+    <h2>Survival</h2>
+    <div class="sub">Understanding the basic of everything we do.</div>
+  </article>
+
+  <p class="cta">All four audiobooks are free to listen to in full — <a href="#auth-screen">sign in with Google to start listening</a>.</p>
+</section>
+
 </body>
 </html>
